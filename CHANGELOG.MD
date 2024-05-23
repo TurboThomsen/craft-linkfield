@@ -1,5 +1,9 @@
 # Release Notes for Typed Link Field
 
+## 2.1.5.1 - 2024-05-2024
+
+- Fix: migration fix - Integrity constraint violation: 1062 Duplicate entry
+
 ## 2.1.5 - 2022-11-29
 - Fix: Escape SQL query in Migration (see: https://github.com/sebastian-lenz/craft-linkfield/pull/245)
 

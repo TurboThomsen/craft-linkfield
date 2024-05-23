@@ -126,9 +126,28 @@ class m190417_202153_migrateDataToTable extends Migration
 
     $writeRows = function($rows) {
       if (count($rows)) {
-        $this->batchInsert(LinkRecord::tableName(), [
-          'elementId', 'siteId', 'fieldId', 'linkedId', 'linkedSiteId', 'type', 'linkedUrl', 'payload'
-        ], $rows);
+        foreach ($rows as $row) {
+          $doesExist = (new Query())
+            ->select('id')
+            ->where(['elementId' => $row[0], 'fieldId' => $row[2]])
+            ->from(LinkRecord::tableName())
+            ->exists();
+
+          if ($doesExist) {
+            continue;
+          }
+
+          $this->insert(LinkRecord::tableName(), [
+            'elementId' => $row[0],
+            'siteId' => $row[1],
+            'fieldId' => $row[2],
+            'linkedId' => $row[3],
+            'linkedSiteId' => $row[4],
+            'type' => $row[5],
+            'linkedUrl' => $row[6],
+            'payload' => $row[7],
+          ]);
+        }
       }
     };
 
@@ -140,10 +159,15 @@ class m190417_202153_migrateDataToTable extends Migration
       ->all();
 
     foreach ($rows as $row) {
-      $payload = Json::decode($row[$columnName]);
-      if (!is_array($payload)) {
-        continue;
+      $payload = Json::decodeIfJson($row[$columnName]);
+      try {
+        if (!is_array($payload)) {
+          continue;
+        }
+      } catch (\Exception $e) {
+        $message = $e->getMessage();
       }
+
 
       $type = $payload['type'] ?? null;
       $value = $payload['value'] ?? '';
